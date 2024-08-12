@@ -81,7 +81,7 @@ class LogisticPCA:
                 if self.trace:
                     print('   {0}: {1:.4f}'.format(itr, loss_new))
                 losses.append(loss_new)
-                if 0 < (losses[itr] - losses[itr+1]) <= self.tol: 
+                if 0 < (losses[itr] - losses[itr+1]) <= self.tol: # TODO収束判定の方法を再検討せよ．これだとlossのスケール次第では収束しない
                     loss_min_temp = losses[itr+1]
                     break
                 elif itr+1 == self.max_iter:
