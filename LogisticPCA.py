@@ -32,7 +32,9 @@ class LogisticPCA:
 
     def _majorize_step(self, Q, A, B):
         W = 1/4 * np.ones((self.n, self.p))
+        #H = self._logistic_func(Q*(A@B.T))
         H = self._first_deriv_logcdf(Q*(A@B.T))
+        #H = np.exp(Q*(A@B.T))/(1+np.exp(Q*(A@B.T))) - 1
         Z = A@B.T - Q*H/W
         return W, H, Z
 
@@ -81,11 +83,14 @@ class LogisticPCA:
                 if self.trace:
                     print('   {0}: {1:.4f}'.format(itr, loss_new))
                 losses.append(loss_new)
-                if 0 < (losses[itr] - losses[itr+1]) <= self.tol: # TODO収束判定の方法を再検討せよ．これだとlossのスケール次第では収束しない
+                if 0 < (losses[itr] - losses[itr+1])/np.sum(X) <= self.tol:
                     loss_min_temp = losses[itr+1]
+                    if self.trace:
+                        print('   relative difference is converged!')
                     break
                 elif itr+1 == self.max_iter:
-                    print('warning: loss was not converged within iterations.')
+                    if self.trace:
+                        print('warning: loss was not converged within iterations.')
                     loss_min_temp = losses[itr+1]
 
             if loss_min_temp < self.min_loss:
