@@ -22,6 +22,10 @@ class LogisticPCA:
         # case: F(x) is a logistic cdf
         return self._logistic_func(X)-1
 
+    def _scale(self, Z):
+        mean = np.mean(Z, axis=0)
+        sd = np.std(Z, axis=0)
+        return (Z-mean)/sd
 
     def _AB_step(self, Z, W):
         lvec, sv, rvecT = np.linalg.svd(Z)
@@ -46,7 +50,7 @@ class LogisticPCA:
         return A, B
 
     def _initialize_AB_by_svd(self, Q):
-        lvec, sv, rvecT = np.linalg.svd(Q)
+        lvec, sv, rvecT = np.linalg.svd(self._scale(Q))
         A = lvec[:, :self.ndim]
         B = rvecT.T[:, :self.ndim]@np.diag(sv[:self.ndim])
         return A, B
@@ -77,13 +81,14 @@ class LogisticPCA:
                 #print(Z)
 
                 # update A, B
+                Z = self._scale(Z)
                 A, B = self._AB_step(Z, W)
 
                 loss_new = self._calc_loss(Q, A, B)
                 if self.trace:
                     print('   {0}: {1:.4f}'.format(itr, loss_new))
                 losses.append(loss_new)
-                if 0 < (losses[itr] - losses[itr+1])/np.sum(X) <= self.tol:
+                if 0 < (losses[itr] - losses[itr+1]) <= self.tol:
                     loss_min_temp = losses[itr+1]
                     if self.trace:
                         print('   relative difference is converged!')
